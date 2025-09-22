@@ -1,14 +1,14 @@
-import { useState, type Key } from 'react';
+import { useState, useEffect, useRef, type Key } from 'react';
 import './App.css';
 
 function History(props: any) {
   return (
     <div className="history">
-      Previous numbers :{' '}
-      <div className="numberContainer">
+      <h3>Previous Numbers</h3>
+      <div className="numberContainer historyContainer">
         {props.h.map((no: number, i: Key) => {
           return (
-            <div className="numbers" key={i}>
+            <div className="numbers historyNumber" key={i}>
               {no}
             </div>
           );
@@ -19,33 +19,39 @@ function History(props: any) {
 }
 
 function App() {
-  const [original, setOriginal] = useState([
-    1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21,
-    22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40,
-    41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59,
-    60, 61, 62, 63, 64, 65, 66, 67, 68, 69, 70, 71, 72, 73, 74, 75, 76, 77, 78,
-    79, 80, 81, 82, 83, 84, 85, 86, 87, 88, 89, 90,
-  ]);
-  const [history, setHistory] = useState<number[]>([]);
-  const [current, setCurrent] = useState(0);
-  const [claimed, setClaimed] = useState(false);
-  const [allClaims, setAllClaims] = useState([
+  const initialClaims = [
     'Early 7',
     'Top Line',
     'Middle Line',
     'Bottom Line',
     '1st House',
     '2nd House',
-  ]);
+  ];
+
+  const [original, setOriginal] = useState(
+    Array.from({ length: 90 }, (_, i) => i + 1)
+  );
+  const [history, setHistory] = useState<number[]>([]);
+  const [current, setCurrent] = useState(0);
+  const [claimed, setClaimed] = useState(false);
+  const [allClaims, setAllClaims] = useState(initialClaims);
   const [claims, setClaims] = useState<string[]>([]);
+  const [mode, setMode] = useState<'manual' | 'auto'>('manual');
+  const [isPaused, setIsPaused] = useState(false);
+  const [speed, setSpeed] = useState(2000);
+  const [gameOver, setGameOver] = useState(false);
+
+  const intervalRef = useRef<any>(null);
   const board = new Array(90).fill(1);
+
   const handleClaim = (val: string) => {
+    if (!val) return;
+
     setClaims((prev) => [...prev, val]);
-    let AllClaimsClone = [...allClaims];
-    AllClaimsClone.splice(AllClaimsClone.indexOf(val), 1);
-    setAllClaims(AllClaimsClone);
+    setAllClaims((prev) => prev.filter((c) => c !== val));
     setClaimed(false);
   };
+
   const getNewNumber = () => {
     if (!original.length) return;
 
@@ -53,47 +59,193 @@ function App() {
     const randomIndex = Math.floor(Math.random() * originalClone.length);
     const newNumber = originalClone[randomIndex];
 
-    // Move the old current into history
-    if (current) {
-      setHistory((prev) => [...prev, current]);
-    }
+    if (current) setHistory((prev) => [...prev, current]);
 
-    // Update current with the freshly chosen number
     setCurrent(newNumber);
 
-    // Remove the new number from the pool
     originalClone.splice(randomIndex, 1);
     setOriginal(originalClone);
   };
 
+  // 🔊 Speak out the number
+  const speakNumber = (num: number) => {
+    if (!('speechSynthesis' in window)) return;
+
+    let message = '';
+    if (num < 10) {
+      message = `Only number ${num}`;
+    } else {
+      const digits = num.toString().split('').join(' ');
+      message = `${digits} ${num}`;
+    }
+
+    const utterance = new SpeechSynthesisUtterance(message);
+    utterance.rate = 0.9;
+    utterance.pitch = 1;
+    utterance.lang = 'en-GB';
+    window.speechSynthesis.cancel();
+    window.speechSynthesis.speak(utterance);
+  };
+
+  // Speak whenever current changes
+  useEffect(() => {
+    if (current !== 0) {
+      speakNumber(current);
+    }
+  }, [current]);
+
+  // Auto mode with pause/resume + speed
+  useEffect(() => {
+    if (mode === 'auto' && !isPaused && original.length > 0) {
+      intervalRef.current = setInterval(() => {
+        getNewNumber();
+      }, speed);
+    } else {
+      clearInterval(intervalRef.current);
+    }
+
+    return () => clearInterval(intervalRef.current);
+  }, [mode, isPaused, speed, original]);
+
+  // 🎉 Trigger Game Over when last claim taken
+  useEffect(() => {
+    if (allClaims.length === 0) {
+      setGameOver(true);
+      setIsPaused(true); // ⏸️ Pause automatically
+    }
+  }, [allClaims]);
+
+  const resetGame = () => {
+    setOriginal(Array.from({ length: 90 }, (_, i) => i + 1));
+    setHistory([]);
+    setCurrent(0);
+    setAllClaims(initialClaims);
+    setClaims([]);
+    setClaimed(false);
+    setGameOver(false);
+    setMode('manual');
+    setIsPaused(false);
+  };
+
+  // Restrict House claims until others are gone
+  const isClaimDisabled = (claim: string) => {
+    if (
+      (claim === '1st House' || claim === '2nd House') &&
+      allClaims.some((c) =>
+        ['Early 7', 'Top Line', 'Middle Line', 'Bottom Line'].includes(c)
+      )
+    ) {
+      return true;
+    }
+    return false;
+  };
+
   return (
     <>
-      <h1>Welcome to Tambola</h1>
+      <h1 className="title">🎉 Welcome to Tambola 🎉</h1>
+
+      {/* Game Over Overlay */}
+      {/* Game Over Overlay */}
+      {gameOver && (
+        <div className="gameOver">
+          <div className="gameOverContent">
+            <h2>🏆 Game Over! 🏆</h2>
+            <button
+              onClick={() => {
+                setGameOver(false);
+                setIsPaused(false); // ▶️ Resume when continuing
+              }}
+            >
+              Continue Anyway
+            </button>
+            <button onClick={resetGame}>Start New Game</button>
+          </div>
+        </div>
+      )}
+
+      {/* Mode Switch */}
+      <div className="modeSwitch">
+        <label>
+          <input
+            type="radio"
+            value="manual"
+            checked={mode === 'manual'}
+            onChange={() => {
+              setMode('manual');
+              setIsPaused(false);
+            }}
+          />
+          Manual
+        </label>
+        <label>
+          <input
+            type="radio"
+            value="auto"
+            checked={mode === 'auto'}
+            onChange={() => {
+              setMode('auto');
+              setIsPaused(false);
+            }}
+          />
+          Auto
+        </label>
+      </div>
+
+      {/* Speed Control */}
+      {mode === 'auto' && (
+        <div className="speedControl">
+          <label>
+            Speed: {speed / 1000}s
+            <input
+              type="range"
+              min="500"
+              max="5000"
+              step="500"
+              value={speed}
+              onChange={(e) => setSpeed(Number(e.target.value))}
+            />
+          </label>
+          <button onClick={() => setIsPaused(!isPaused)}>
+            {isPaused ? '▶️ Resume' : '⏸️ Pause'}
+          </button>
+        </div>
+      )}
+
+      {/* Board */}
       <div className="numberContainer">
-        {board.map((el, i) => {
-          console.log(el);
+        {board.map((_, i) => {
+          const num = i + 1;
           return (
             <div
               className="numbers"
               style={{
                 backgroundColor:
-                  history.includes(i + 1) || current == i + 1
+                  current === num
+                    ? 'orange'
+                    : history.includes(num)
                     ? 'grey'
                     : 'white',
+                color: current === num ? 'white' : 'black',
               }}
               key={i}
             >
-              {i + 1}
+              {num}
             </div>
           );
         })}
       </div>
-      <div className="currentConatiner">
-        <button disabled={!original.length} onClick={getNewNumber}>
-          New Number
-        </button>
-        <div className="current">{current != 0 && <>{current}</>}</div>
-        {!claimed && allClaims.length != 0 && (
+
+      {/* Controls */}
+      <div className="controls">
+        {mode === 'manual' && (
+          <button disabled={!original.length} onClick={getNewNumber}>
+            🎲 New Number
+          </button>
+        )}
+        <div className="current">
+          {current !== 0 && <span>Current: {current}</span>}
+        </div>
+        {!claimed && allClaims.length !== 0 && (
           <button disabled={!original.length} onClick={() => setClaimed(true)}>
             Claim?
           </button>
@@ -105,7 +257,7 @@ function App() {
           >
             <option value="">-- Select Claim --</option>
             {allClaims.map((item, index) => (
-              <option key={index} value={item}>
+              <option key={index} value={item} disabled={isClaimDisabled(item)}>
                 {item}
               </option>
             ))}
@@ -113,13 +265,17 @@ function App() {
         )}
       </div>
 
+      {/* History */}
       <History h={history} />
-      {claims.length != 0 && (
-        <div>
-          {' '}
-          Claims:
+
+      {/* Claims */}
+      {claims.length !== 0 && (
+        <div className="claimsList">
+          <h3>Claims</h3>
           {claims.map((c, i) => (
-            <div key={i}>{c}</div>
+            <div className="claimItem" key={i}>
+              ✅ {c}
+            </div>
           ))}
         </div>
       )}

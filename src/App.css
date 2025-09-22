@@ -1,43 +1,217 @@
-.history {
-  max-width: 500px;
-  border: 1px solid black;
-  word-wrap: break-word;
+/* Base setup */
+body {
+  font-family: Arial, sans-serif;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  min-height: 100vh;
+  transition: background 0.3s, color 0.3s;
 }
-.numbers {
-  border: 1px solid black;
-  padding: 3px;
-  margin: 2px;
-  color: black;
-  background-color: white;
+
+/* Light Theme */
+.light-theme {
+  background: #f4f4f9;
+  color: #333;
 }
+
+.light-theme .numbers {
+  background: white;
+  border: 1px solid #ccc;
+  color: #333;
+}
+
+.light-theme .numbers.greyed {
+  background: #ddd;
+  color: #555;
+}
+
+.light-theme .current {
+  background: #ff5722;
+  color: white;
+}
+
+.light-theme .gameOverContent {
+  background: white;
+  color: #333;
+}
+
+/* Dark Theme */
+.dark-theme {
+  background: #121212;
+  color: #eee;
+}
+
+.dark-theme h1 {
+  color: #fff;
+}
+
+.dark-theme .numbers {
+  background: #1f1f1f;
+  border: 1px solid #333;
+  color: #eee;
+}
+
+.dark-theme .numbers.greyed {
+  background: #444;
+  color: #aaa;
+}
+
+.dark-theme .current {
+  background: #03a9f4;
+  color: white;
+}
+
+.dark-theme .gameOverContent {
+  background: #1f1f1f;
+  color: #eee;
+}
+
+/* Headings */
+h1 {
+  text-align: center;
+  margin: 1rem 0;
+  font-size: clamp(1.5rem, 3vw, 2.5rem);
+}
+
+/* Grid for Numbers */
 .numberContainer {
   display: grid;
-  grid-template-columns: 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr;
+  grid-template-columns: repeat(auto-fit, minmax(45px, 1fr));
+  gap: 8px;
+  margin: 1rem auto;
+  max-width: 700px;
+}
+
+.numbers {
   padding: 10px;
-}
-.current {
-  border: 1px brown solid;
   text-align: center;
-  width: 20%;
-  border-radius: 5px;
-  padding: 5px;
-  margin: 20px;
+  border-radius: 6px;
+  font-size: clamp(0.8rem, 2.5vw, 1rem);
+  transition: background 0.3s, transform 0.2s;
 }
-button {
-  border: 1px brown solid;
-  margin: 20px;
-  text-align: center;
-  background-color: yellow;
-  color: black;
+
+.numbers.active {
+  background: #ffeb3b;
+  transform: scale(1.1);
 }
+
+/* Current number + buttons */
 .currentConatiner {
   display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: center;
+  gap: 10px;
+  margin: 1rem;
 }
-.claims {
-  border: 1px brown solid;
+
+.current {
+  font-size: clamp(1.2rem, 4vw, 2rem);
+  font-weight: bold;
+  padding: 0.5rem 1rem;
+  border-radius: 10px;
+  min-width: 60px;
   text-align: center;
-  width: 20%;
-  border-radius: 5px;
-  padding: 5px;
-  margin: 20px;
+}
+
+button,
+select {
+  padding: 10px 15px;
+  font-size: 1rem;
+  border-radius: 8px;
+  border: none;
+  cursor: pointer;
+  transition: background 0.3s, transform 0.2s;
+}
+
+button {
+  background: #4caf50;
+  color: white;
+}
+
+button:hover {
+  background: #388e3c;
+  transform: translateY(-2px);
+}
+
+button:disabled {
+  background: #aaa;
+  cursor: not-allowed;
+}
+
+select {
+  background: inherit;
+  color: inherit;
+  border: 1px solid currentColor;
+}
+
+/* History */
+.history {
+  margin: 1rem;
+  text-align: center;
+}
+
+.history .numberContainer {
+  max-width: 500px;
+  grid-template-columns: repeat(auto-fit, minmax(35px, 1fr));
+}
+
+/* Game Over Modal */
+.gameOver {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.7);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 999;
+}
+
+.gameOverContent {
+  padding: 2rem;
+  border-radius: 12px;
+  text-align: center;
+  max-width: 90%;
+  animation: popUp 0.4s ease;
+}
+
+@keyframes popUp {
+  from {
+    transform: scale(0.7);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+/* Theme Toggle Bar */
+.themeToggle {
+  text-align: center;
+  margin: 1rem;
+}
+
+.themeToggle select {
+  margin-left: 0.5rem;
+}
+
+/* Responsive */
+@media (max-width: 600px) {
+  .currentConatiner {
+    flex-direction: column;
+  }
+
+  .numbers {
+    padding: 8px;
+    font-size: 0.8rem;
+  }
+
+  button,
+  select {
+    width: 100%;
+    max-width: 250px;
+  }
 }
