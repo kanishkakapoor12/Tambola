@@ -87,21 +87,39 @@ function App() {
   //   window.speechSynthesis.speak(utterance);
   // };
   function speakNumber(num: number) {
-    const digits = num.toString().split("").map((d) => d).join(" ");
+    // Split digits
+    const digits = num
+      .toString()
+      .split("")
+      .map((d) => {
+        // convert each digit to word
+        const words = ["zero","one","two","three","four","five","six","seven","eight","nine"];
+        return words[parseInt(d)];
+      })
+      .join(" ");
+  
+    // Construct text
     const text =
       num < 10
-        ? `Only number ${num}`
-        : `${digits} ${num}`;
+        ? `Only number ${num}`       // single-digit special case
+        : `${digits} ${num}`;        // spell out digits + full number
+  
     const utterance = new SpeechSynthesisUtterance(text);
-    speechSynthesis.speak(utterance);
+  
+    // Optional: force language to English
+    utterance.lang = "en-US";
+  
+    // Speak
+    window.speechSynthesis.speak(utterance);
   }
   
+  
   // Speak whenever current changes
-  useEffect(() => {
-    if (current !== 0) {
-      speakNumber(current);
-    }
-  }, [current]);
+  // useEffect(() => {
+  //   if (current !== 0) {
+  //     speakNumber(current);
+  //   }
+  // }, [current]);
 
   // Auto mode with pause/resume + speed
   useEffect(() => {
