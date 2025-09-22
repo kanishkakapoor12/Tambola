@@ -1,0 +1,43 @@
+.history {
+  max-width: 500px;
+  border: 1px solid black;
+  word-wrap: break-word;
+}
+.numbers {
+  border: 1px solid black;
+  padding: 3px;
+  margin: 2px;
+  color: black;
+  background-color: white;
+}
+.numberContainer {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr;
+  padding: 10px;
+}
+.current {
+  border: 1px brown solid;
+  text-align: center;
+  width: 20%;
+  border-radius: 5px;
+  padding: 5px;
+  margin: 20px;
+}
+button {
+  border: 1px brown solid;
+  margin: 20px;
+  text-align: center;
+  background-color: yellow;
+  color: black;
+}
+.currentConatiner {
+  display: flex;
+}
+.claims {
+  border: 1px brown solid;
+  text-align: center;
+  width: 20%;
+  border-radius: 5px;
+  padding: 5px;
+  margin: 20px;
+}
