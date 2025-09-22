@@ -62,31 +62,40 @@ function App() {
     if (current) setHistory((prev) => [...prev, current]);
 
     setCurrent(newNumber);
-
+    speakNumber(newNumber);
     originalClone.splice(randomIndex, 1);
     setOriginal(originalClone);
   };
 
   // 🔊 Speak out the number
-  const speakNumber = (num: number) => {
-    if (!('speechSynthesis' in window)) return;
+  // const speakNumber = (num: number) => {
+  //   if (!('speechSynthesis' in window)) return;
 
-    let message = '';
-    if (num < 10) {
-      message = `Only number ${num}`;
-    } else {
-      const digits = num.toString().split('').join(' ');
-      message = `${digits} ${num}`;
-    }
+  //   let message = '';
+  //   if (num < 10) {
+  //     message = `Only number ${num}`;
+  //   } else {
+  //     const digits = num.toString().split('').join(' ');
+  //     message = `${digits} ${num}`;
+  //   }
 
-    const utterance = new SpeechSynthesisUtterance(message);
-    utterance.rate = 0.9;
-    utterance.pitch = 1;
-    utterance.lang = 'en-GB';
-    window.speechSynthesis.cancel();
-    window.speechSynthesis.speak(utterance);
-  };
-
+  //   const utterance = new SpeechSynthesisUtterance(message);
+  //   utterance.rate = 0.9;
+  //   utterance.pitch = 1;
+  //   utterance.lang = 'en-GB';
+  //   window.speechSynthesis.cancel();
+  //   window.speechSynthesis.speak(utterance);
+  // };
+  function speakNumber(num: number) {
+    const digits = num.toString().split("").map((d) => d).join(" ");
+    const text =
+      num < 10
+        ? `Only number ${num}`
+        : `${digits} ${num}`;
+    const utterance = new SpeechSynthesisUtterance(text);
+    speechSynthesis.speak(utterance);
+  }
+  
   // Speak whenever current changes
   useEffect(() => {
     if (current !== 0) {
